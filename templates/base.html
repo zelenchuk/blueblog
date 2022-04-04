@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BlueBlog</title>
+    </head>
+    <body>
+        <style>
+            body{
+                padding: 0;
+                margin: 0;
+            }
+
+
+            header {
+                background: grey;
+                overflow: hidden;
+                text-align: center;
+                padding: 20px 0;
+            }
+            header p {
+                font-size: 20px;
+                color: white;
+            }
+            header a {
+                text-decoration: none;
+                background: black;
+                color: white;
+                padding: 5px;
+            }
+
+            ul {
+                padding: 0;
+            }
+            li {
+                list-style: none;
+                display: inline-block;
+                margin: 0 0 0 15px;
+            }
+
+            main {
+                width: 1000px;
+                margin: 0 auto;
+            }
+
+        </style>
+        {% block header %}
+            <header>
+                {% if user.is_authenticated %}
+                    <p>
+                        Вы вошли как {{ user.username }}. Приятного пользования.
+                    </p>
+                {% else %}
+                    <p>
+                        Приветствуем! Выполните вход :)
+                    </p>
+                {% endif %}
+                <ul>
+                    <li>
+                        <a href="{% url 'home' %}">Главная страница</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li>
+                            <a href="{% url 'logout' %}">Выход</a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{% url 'login' %}">Вход</a>
+                        </li>
+                        <li>
+                            <a href="{% url "user_registration" %}">Регистрация</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            {% endblock %}
+        </header>
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+    </body>
+</html>

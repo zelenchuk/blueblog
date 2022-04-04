@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+    Главная
+    {% if user.is_authenticated %}
+        {% if not has_blog %}
+            <div>
+                <a href="{% url 'new-blog' %}">Создать блог</a>
+            </div>
+        {% else %}
+            <div>
+                <a href="{% url 'edit-blog' pk=blog.pk %}">Редактировать блог</a>
+            </div>
+            <div>
+                <a href="{% url 'new-post' %}">Новый пост +</a>
+            </div>
+        {% endif %}
+        <hr />
+        <h2>Мои посты</h2>
+        <hr />
+        {% if posts %}
+            {% for post in posts %}
+                <h3>
+                    {{ post.title }} | <a href="{% url 'edit-post' pk=post.pk %}">Редактировать</a>
+                </h3>
+                <hr />
+            {% endfor %}
+        {% endif %}
+    {% else %}
+        <hr />
+        <h2>Последние посты на сайте</h2>
+        <hr />
+        {% if posts %}
+            {% for post in posts %}
+                <h3>{{ post.title }}</h3>
+                {{ post.body }}
+                <hr />
+            {% endfor %}
+        {% endif %}
+    {% endif %}
+{% endblock %}
