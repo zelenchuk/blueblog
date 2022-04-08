@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+    <hr>
+    <a href="{% url 'home' %}">Главная страница</a> -> {{ object.title }}
+<h1>{{ object.title }}</h1>
+<p>
+    {{ object.body }}
+</p>
+<p>
+    Название блога: <strong>{{ object.blog.title }}</strong>
+</p>
+{% endblock %}

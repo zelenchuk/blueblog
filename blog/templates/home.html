@@ -1,40 +1,59 @@
 {% extends 'base.html' %}
 {% block content %}
-    Главная
     {% if user.is_authenticated %}
         {% if not has_blog %}
             <div>
                 <a href="{% url 'new-blog' %}">Создать блог</a>
             </div>
         {% else %}
-            <div>
-                <a href="{% url 'edit-blog' pk=blog.pk %}">Редактировать блог</a>
-            </div>
-            <div>
-                <a href="{% url 'new-post' %}">Новый пост +</a>
+            <div style="overflow: hidden; margin-top: 40px;">
+                <div style="float: left ;">
+                    <a href="{% url 'new-post' %}">Новый пост +</a>
+                </div>
+                <div style="float:right ;">
+                    <a href="{% url 'edit-blog' pk=blog.pk %}">Настройки блога {{ blog.title }}</a>
+                </div>
             </div>
         {% endif %}
         <hr />
-        <h2>Мои посты</h2>
+        <h2 style="text-align:center;">Мои посты</h2>
         <hr />
         {% if posts %}
             {% for post in posts %}
-                <h3>
-                    {{ post.title }} | <a href="{% url 'edit-post' pk=post.pk %}">Редактировать</a>
-                </h3>
-                <hr />
-            {% endfor %}
-        {% endif %}
-    {% else %}
+                <p>
+                    <h3>{{ post.title }}</h3>
+                    <a href="{% url 'post_details' pk=post.pk %}">Читать</a> |
+                <a href="{% url 'edit-post' pk=post.pk %}">Редактировать</a> |
+            <a href="{% url "share-blog-post-with-blog" pk=post.pk %}">Поделиться постом</a> |
+        <a style="color: red;" href="{% url "delete_post" pk=post.pk %}">Удалить</a>
+    </p>
+    <hr />
+{% endfor %}
+{% endif %}
+{% else %}
+<hr />
+<h2 style="text-align:center;">Последние посты на сайте</h2>
+<hr />
+{% if posts %}
+    {% for post in posts %}
+        <h3>{{ post.title }}</h3>
+        <p>
+            {{ post.body | safe | truncatechars_html:'150' }}
+        </p>
+        <a href="{% url "post_details" pk=post.pk %}">Читать</a>
         <hr />
-        <h2>Последние посты на сайте</h2>
-        <hr />
-        {% if posts %}
-            {% for post in posts %}
-                <h3>{{ post.title }}</h3>
-                {{ post.body }}
-                <hr />
-            {% endfor %}
-        {% endif %}
-    {% endif %}
+    {% endfor %}
+{% endif %}
+{% endif %}
+{% if shared_posts %}
+    <h2 style="text-align:center;">Со мной поделились постами:</h2>
+    <ul>
+        {% for post in shared_posts %}
+            <li>
+                {{ post.title }} |
+                <a href="{% url 'post_details' pk=post.pk %}">Читать</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endif %}
 {% endblock %}

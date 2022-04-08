@@ -1,7 +1,9 @@
+from pyexpat import model
 from django.urls import reverse
+from django.urls import reverse_lazy
 from django.http.response import HttpResponseRedirect, HttpResponseNotFound
 from django.utils.text import slugify
-from django.views.generic import CreateView, TemplateView, UpdateView
+from django.views.generic import CreateView, TemplateView, UpdateView, View, DetailView, DeleteView
 from django.http.response import HttpResponseForbidden
 
 from django.contrib.auth.decorators import login_required
@@ -25,6 +27,7 @@ class HomeView(TemplateView):
                 blog = Blog.objects.get(owner=self.request.user)
                 context['blog'] = blog
                 context['posts'] = BlogPost.objects.filter(blog=blog)
+                context['shared_posts'] = blog.shared_posts.all()
         else:
             context['posts'] = BlogPost.objects.filter(is_published=True)
         return context
@@ -67,6 +70,10 @@ class UpdateBlogView(UpdateView):
     success_url = '/'
     model = Blog
 
+    def get_queryset(self):
+        queryset = super(UpdateBlogView, self).get_queryset()
+        return queryset.filter(owner=self.request.user)
+
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
@@ -108,6 +115,10 @@ class UpdatePostView(UpdateView):
     success_url = '/'
     model = BlogPost
 
+    def get_queryset(self):
+        queryset = super(UpdatePostView, self).get_queryset()
+        return queryset.filter(blog__owner=self.request.user)
+
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
@@ -117,3 +128,70 @@ class UpdatePostView(UpdateView):
         context['form_title'] = 'Редактировать пост'
         context['button_name'] = 'Обновить пост'
         return context
+
+
+class PostDetailView(DetailView):
+    model = BlogPost
+    template_name = 'post_detail.html'
+
+
+class ShareBlogPostView(TemplateView):
+    template_name = 'share_blog_post.html'
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ShareBlogPostView, self).dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, pk, **kwargs):
+        blog_post = BlogPost.objects.get(pk=pk)
+        currently_shared_with = blog_post.shared_to.all()
+        currently_shared_with_ids = map(lambda x: x.pk, currently_shared_with)
+        exclude_from_can_share_list = [
+            blog_post.blog.pk] + list(currently_shared_with_ids)
+
+        can_be_shared_with = Blog.objects.exclude(
+            pk__in=exclude_from_can_share_list)
+
+        return {
+            'post': blog_post,
+            'is_shared_with': currently_shared_with,
+            'can_be_shared_with': can_be_shared_with
+        }
+
+
+class SharePostWithBlog(View):
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(SharePostWithBlog, self).dispatch(request, *args, **kwargs)
+
+    def get(self, request, post_pk, blog_pk):
+        blog_post = BlogPost.objects.get(pk=post_pk)
+        if blog_post.blog.owner != request.user:
+            return HttpResponseForbidden('You can only share posts that you created')
+
+        blog = Blog.objects.get(pk=blog_pk)
+        blog_post.shared_to.add(blog)
+
+        return HttpResponseRedirect(reverse('home'))
+
+
+class StopSharingPostWithBlog(View):
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(StopSharingPostWithBlog, self).dispatch(request, *args, **kwargs)
+
+    def get(self, request, post_pk, blog_pk):
+        blog_post = BlogPost.objects.get(pk=post_pk)
+        if blog_post.blog.owner != request.user:
+            return HttpResponseForbidden('You can only stop sharing posts that you created')
+
+        blog = Blog.objects.get(pk=blog_pk)
+        blog_post.shared_to.remove(blog)
+
+        return HttpResponseRedirect(reverse('home'))
+
+
+class PostDeleteView(DeleteView):
+    model = BlogPost
+    success_url = reverse_lazy('home')
+    template_name = 'confirm_delete.html'

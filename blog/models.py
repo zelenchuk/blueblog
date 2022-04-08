@@ -13,7 +13,6 @@ class BlogPost(models.Model):
     blog = models.ForeignKey(Blog, on_delete=models.CASCADE)
     title = models.CharField('Заголовок', max_length=500)
     body = models.TextField('Основной текст')
-
     is_published = models.BooleanField('Опубликован?', default=False)
-
     slug = models.SlugField(max_length=500, editable=False)
+    shared_to = models.ManyToManyField(Blog, related_name='shared_posts')
