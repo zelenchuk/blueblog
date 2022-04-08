@@ -16,3 +16,13 @@ class BlogPost(models.Model):
     is_published = models.BooleanField('Опубликован?', default=False)
     slug = models.SlugField(max_length=500, editable=False)
     shared_to = models.ManyToManyField(Blog, related_name='shared_posts')
+
+
+class Comment(models.Model):
+    body = models.TextField("Комментарий")
+
+    commented_on = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
+    in_reply_to = models.ForeignKey('self', blank=True, null=True, on_delete=models.DO_NOTHING)
+
+    commented_by = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    created_on = models.DateTimeField(auto_now_add=True, editable=False)

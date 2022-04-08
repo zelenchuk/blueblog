@@ -1,6 +1,6 @@
 from django import forms
 
-from blog.models import Blog, BlogPost
+from blog.models import Blog, BlogPost, Comment
 
 
 class BlogForm(forms.ModelForm):
@@ -21,3 +21,11 @@ class PostForm(forms.ModelForm):
             'body',
             'is_published',
         ]
+
+
+class CommentModelForm(forms.ModelForm):
+    link_pk = forms.IntegerField(widget=forms.HiddenInput)
+
+    class Meta:
+        model = Comment
+        fields = ('body',)

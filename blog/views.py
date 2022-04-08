@@ -8,9 +8,10 @@ from django.http.response import HttpResponseForbidden
 
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from tomlkit import comment
 
-from blog.models import Blog, BlogPost
-from blog.forms import BlogForm, PostForm
+from blog.models import Blog, BlogPost, Comment
+from blog.forms import BlogForm, PostForm, CommentModelForm
 
 
 # https://docs.djangoproject.com/en/4.0/topics/class-based-views/intro/
@@ -133,6 +134,12 @@ class UpdatePostView(UpdateView):
 class PostDetailView(DetailView):
     model = BlogPost
     template_name = 'post_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        comments = Comment.objects.all()
+        context['comments'] = comments
+        return context
 
 
 class ShareBlogPostView(TemplateView):

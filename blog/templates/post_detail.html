@@ -9,4 +9,7 @@
 <p>
     Название блога: <strong>{{ object.blog.title }}</strong>
 </p>
+<hr>
+<h4>Комментарии</h4>
+{% for comment in comments %}-- {{ comment.created_on|date }} | {{ comment.body }}{% endfor %}
 {% endblock %}
